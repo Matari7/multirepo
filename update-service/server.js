@@ -1,38 +1,25 @@
 const express = require('express');
 const bodyParser = require('body-parser');
-const axios = require('axios');
+const path = require('path');
 
 const app = express();
 const port = 3006;
 
 app.use(bodyParser.json());
 
-// Update user credentials endpoint
-app.put('/update', async (req, res) => {
-  const { username, password, newUsername, newPassword } = req.body;
+// Serve static images from the 'images' folder
+app.use('/images', express.static(path.join(__dirname, 'images')));
 
-  try {
-    // Fetch the list of users
-    const response = await axios.get('http://registration-service:3004/users');
-    const users = response.data;
+// Data for images of people
+const peopleImages = [
+  { id: 1, name: 'Ariel Campoverde', imageUrl: '/images/cristiano.jpg' },
+  { id: 2, name: 'Cristian Caiza', imageUrl: '/images/montalvo.jpg' },
+  { id: 3, name: 'Cristiano Ronaldo', imageUrl: '/images/cristianogrande.jpg' },
+];
 
-    // Find the user by username and password
-    const user = users.find(u => u.username === username && u.password === password);
-    if (!user) {
-      return res.status(404).json({ message: 'User not found or incorrect credentials' });
-    }
-
-    // Update user details
-    user.username = newUsername || user.username;
-    user.password = newPassword || user.password;
-
-    // Send the updated user back to the registration service
-    await axios.put(`http://registration-service:3004/users/${user.id}`, user);
-    
-    res.json({ message: 'User credentials updated successfully', user });
-  } catch (error) {
-    res.status(500).json({ message: 'Server error', error: error.message });
-  }
+// Endpoint to get all people images
+app.get('/people-images', (req, res) => {
+  res.json(peopleImages);
 });
 
 app.listen(port, () => {
